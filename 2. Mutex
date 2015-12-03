@@ -1,0 +1,67 @@
+/* CODIGO PARA USAR MUTEX
+	
+	Crear la variable :  pthread_mutex_t nomVar;
+	Conocer si fue creada exitosamente : pthread_mutex_init(&noVar,NULL);
+
+	Destruir el mutex :						pthread_mutex_destroy(&nomVar);
+	Bloquear la instrucción siguiente: 		pthread_mutex_lock(&nomVar);
+	Desbloquear el espacio: 				pthread_mutex_unlock(&nomVar);
+	
+*/
+
+#include <stdio.h>
+#include <pthread.h>
+#define NUMTHREADS 200
+#define MAXCNT 1000
+
+//Variables globales-Compartidas entre hilos
+double counter=0;
+pthread_mutex_t lock;
+
+void*counting(void *);
+
+int main(int argc, char const *argv[])
+{
+	pthread_t tid[NUMTHREADS];
+	int i=0;
+
+	//Inicializar el mutex
+	if(pthread_mutex_init(&lock,NULL)){
+		printf("inicialización del mutex fallida\n");
+		return 1;
+	}
+
+	for (i = 0; i < NUMTHREADS; ++i)
+	{
+		pthread_create(&tid[i],NULL,&counting, NULL);
+	}
+	for ( i = 0; i < NUMTHREADS; ++i)
+	{
+		pthread_join(tid[i],NULL);
+	}
+
+	//Destruir el mutex
+
+	pthread_mutex_destroy(&lock);
+
+	printf("Contador puede estar en %d\n",MAXCNT*NUMTHREADS );
+	printf("Valor del contador es %.0f\n", counter);
+
+
+	return 0;
+}
+
+void* counting(void *unused){
+	int i=0;
+
+pthread_mutex_lock(&lock);
+
+	for (i = 0; i < MAXCNT; ++i)
+	{
+		counter++;
+	}
+
+pthread_mutex_unlock(&lock);
+
+	return NULL;
+}
